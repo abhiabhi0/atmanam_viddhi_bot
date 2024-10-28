@@ -1,12 +1,17 @@
-from telegram.ext import Application, CommandHandler, CallbackQueryHandler
+from telegram.ext import Application, CommandHandler
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 import requests
 import random
 import json
 import os
 from dotenv import load_dotenv
+import time
 
-load_dotenv()  # Load environment variables
+load_dotenv()
+
+# Store last command timestamp
+last_command_time = 0
+COOLDOWN_SECONDS = 10
 
 def get_random_excerpt():
     repo_url = "https://raw.githubusercontent.com/atmanamviddhi/atmanamviddhi.github.io"
@@ -28,14 +33,20 @@ def get_random_excerpt():
     return random_excerpt
 
 async def send_excerpt(update, context):
+    global last_command_time
+    current_time = time.time()
+    
+    if current_time - last_command_time < COOLDOWN_SECONDS:
+        time_left = int(COOLDOWN_SECONDS - (current_time - last_command_time))
+        await update.message.reply_text(f"Please wait {time_left} seconds before requesting another wisdom.")
+        return
+
+    last_command_time = current_time
     excerpt = get_random_excerpt()
     
-    # Format message with italic book title
-    message = f"{excerpt['text']}\n\n_~ {excerpt['metadata']['title']}_"
+    message = f"{excerpt['text']}\n\n_~ {excerpt['metadata']['title']}_\n\n_Type /wisdom again after 10 seconds for more wisdom._"
     
-    # Create keyboard with buttons
     keyboard = [
-        [InlineKeyboardButton("🔄 Need more Wisdom", callback_data='new_quote')],
         [InlineKeyboardButton("📚 Buy on Amazon", url=excerpt['metadata']['amazonLink'])] if excerpt['metadata'].get('amazonLink') else [],
         [InlineKeyboardButton("☕ Buy Me a Coffee", url="https://buymeacoffee.com/botman1001")]
     ]
@@ -48,18 +59,11 @@ async def send_excerpt(update, context):
         parse_mode='Markdown'
     )
 
-async def button_callback(update, context):
-    query = update.callback_query
-    if query.data == 'new_quote':
-        await query.answer()
-        await send_excerpt(query, context)
-
 def main():
     token = os.getenv('BOT_TOKEN')
     application = Application.builder().token(token).build()
     
     application.add_handler(CommandHandler("wisdom", send_excerpt))
-    application.add_handler(CallbackQueryHandler(button_callback))
     
     print("Bot is running...")
     application.run_polling()
