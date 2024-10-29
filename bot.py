@@ -55,12 +55,13 @@ def get_random_excerpt():
     
     return random_excerpt
 
+BOT_USERNAME = "@wisdom\\_whisperer\\_bot"
+
 async def send_excerpt(update, context):
     user_id = update.message.from_user.id
     username = update.message.from_user.username or "Unknown"
     chat_id = update.message.chat_id
     
-    # Log user access
     user_info = {
         'username': username,
         'user_id': user_id,
@@ -80,8 +81,12 @@ async def send_excerpt(update, context):
     user_last_command[user_id] = current_time
     excerpt = get_random_excerpt()
     
-    message = f"{excerpt['text']}\n\n_~ {excerpt['metadata']['title']}_\n\n_Type /enlighten again after 10 seconds for more wisdom._"
-    
+    # First message with the excerpt
+    message = f"{excerpt['text']}\n\n_~ {excerpt['metadata']['title']}_\n\n{BOT_USERNAME}"
+    await update.message.reply_text(
+        text=message,
+        parse_mode='Markdown'
+    )    # Second message with the buttons
     keyboard = [
         [InlineKeyboardButton("📚 Buy on Amazon", url=excerpt['metadata']['amazonLink'])] if excerpt['metadata'].get('amazonLink') else [],
         [InlineKeyboardButton("☕ Buy Me a Coffee", url="https://buymeacoffee.com/botman1001")]
@@ -90,10 +95,11 @@ async def send_excerpt(update, context):
     reply_markup = InlineKeyboardMarkup(keyboard)
     
     await update.message.reply_text(
-        text=message,
+        text="_Type /enlighten again after 10 seconds for more wisdom._",
         reply_markup=reply_markup,
         parse_mode='Markdown'
     )
+    
 def main():
     token = os.getenv('BOT_TOKEN')
     application = Application.builder().token(token).build()
