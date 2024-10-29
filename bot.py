@@ -16,6 +16,10 @@ load_dotenv()
 user_last_command = {}
 COOLDOWN_SECONDS = 10
 
+async def start(update, context):
+    welcome_message = "Welcome, Seeker! 🌱 You've entered a space dedicated to exploring the essence of truth and self-understanding. 💫 Use /enlighten to receive a dose of timeless wisdom curated for seekers like you."
+    await update.message.reply_text(welcome_message)
+
 def create_log_entry(user_info):
     ist = pytz.timezone('Asia/Kolkata')
     current_time = datetime.now(ist)
@@ -76,7 +80,7 @@ async def send_excerpt(update, context):
     user_last_command[user_id] = current_time
     excerpt = get_random_excerpt()
     
-    message = f"{excerpt['text']}\n\n_~ {excerpt['metadata']['title']}_\n\n_Type /wisdom again after 10 seconds for more wisdom._"
+    message = f"{excerpt['text']}\n\n_~ {excerpt['metadata']['title']}_\n\n_Type /enlighten again after 10 seconds for more wisdom._"
     
     keyboard = [
         [InlineKeyboardButton("📚 Buy on Amazon", url=excerpt['metadata']['amazonLink'])] if excerpt['metadata'].get('amazonLink') else [],
@@ -94,7 +98,8 @@ def main():
     token = os.getenv('BOT_TOKEN')
     application = Application.builder().token(token).build()
     
-    application.add_handler(CommandHandler("wisdom", send_excerpt))
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("enlighten", send_excerpt))
     
     print("Bot is running...")
     application.run_polling()
