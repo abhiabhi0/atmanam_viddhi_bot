@@ -56,6 +56,9 @@ def get_random_excerpt():
     return random_excerpt
 
 BOT_USERNAME = "@wisdom\\_whisperer\\_bot"
+channel_name = "atmanam\\_viddhi"
+insta_url = "https://www.instagram.com/atmanam.viddhi"
+fb_url = "https://www.facebook.com/atmanam.viddhi"
 
 async def send_excerpt(update, context):
     user_id = update.message.from_user.id
@@ -95,10 +98,11 @@ async def send_excerpt(update, context):
     reply_markup = InlineKeyboardMarkup(keyboard)
     
     await update.message.reply_text(
-        text="_Type /enlighten again after 10 seconds for more wisdom._",
-        reply_markup=reply_markup,
-        parse_mode='Markdown'
-    )
+    text=f"_Type /enlighten again after 10 seconds for more wisdom._\n\nJoin our channel: @{channel_name}\nFollow us on [Instagram]({insta_url}) and [Facebook]({fb_url})",
+    reply_markup=reply_markup,
+    parse_mode='Markdown'
+)
+
     
 def main():
     token = os.getenv('BOT_TOKEN')
